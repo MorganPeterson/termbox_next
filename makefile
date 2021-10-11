@@ -4,7 +4,7 @@ FLAGS+=-std=c99 -pedantic -Wall -Werror -g
 
 OS:=$(shell uname -s)
 ifeq ($(OS),Linux)
-	FLAGS+=-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE
+	FLAGS+=-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
 endif
 
 BIND=bin
