@@ -13,7 +13,10 @@ void memstream_init(struct memstream* s, int fd, void* buffer, size_t len)
 
 void memstream_flush(struct memstream* s)
 {
-	write(s->file, s->data, s->pos);
+
+	ssize_t byts = write(s->file, s->data, s->pos);
+  (void)byts;
+
 	s->pos = 0;
 }
 
