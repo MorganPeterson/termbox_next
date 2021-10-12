@@ -1,9 +1,11 @@
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
+
 #include "memstream.h"
 
-void memstream_init(struct memstream* s, int fd, void* buffer, size_t len)
+void
+memstream_init(struct memstream* s, int fd, void* buffer, size_t len)
 {
 	s->file = fd;
 	s->data = buffer;
@@ -11,7 +13,8 @@ void memstream_init(struct memstream* s, int fd, void* buffer, size_t len)
 	s->capa = len;
 }
 
-void memstream_flush(struct memstream* s)
+void
+memstream_flush(struct memstream* s)
 {
 
 	ssize_t byts = write(s->file, s->data, s->pos);
@@ -20,12 +23,12 @@ void memstream_flush(struct memstream* s)
 	s->pos = 0;
 }
 
-void memstream_write(struct memstream* s, void* source, size_t len)
+void
+memstream_write(struct memstream* s, void* source, size_t len)
 {
 	unsigned char* data = source;
 
-	if (s->pos + len > s->capa)
-	{
+	if (s->pos + len > s->capa) {
 		memstream_flush(s);
 	}
 
@@ -33,7 +36,7 @@ void memstream_write(struct memstream* s, void* source, size_t len)
 	s->pos += len;
 }
 
-void memstream_puts(struct memstream* s, const char* str)
-{
+void
+memstream_puts(struct memstream* s, const char* str) {
 	memstream_write(s, (void*) str, strlen(str));
 }

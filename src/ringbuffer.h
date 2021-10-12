@@ -9,7 +9,6 @@ struct ringbuffer
 {
 	char* buf;
 	size_t size;
-
 	char* begin;
 	char* end;
 };
