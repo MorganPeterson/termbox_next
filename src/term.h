@@ -3,7 +3,6 @@
 
 #include "termbox.h"
 #include "ringbuffer.h"
-#include <stdbool.h>
 
 #define EUNSUPPORTED_TERM -1
 
@@ -29,9 +28,11 @@ enum
 extern const char** keys;
 extern const char** funcs;
 
-// true on success, false on failure
-bool extract_event(struct tb_event* event, struct ringbuffer* inbuf,
-	int inputmode);
+/*
+ * true on success, false on failure
+ */
+int extract_event(struct tb_event* event, struct ringbuffer* inbuf,
+        int inputmode);
 int init_term(void);
 void shutdown_term(void);
 
