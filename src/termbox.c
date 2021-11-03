@@ -424,7 +424,9 @@ convertnum(uint32_t num, char* buf)
     num /= 10;
   } while (num);
 
-  for (int i = 0; i < l / 2; i++) {
+  /* divide l by 2 */
+  int loop_max = l >> 1;
+  for (int i = 0; i < loop_max; i++) {
     int ch = buf[i];
     buf[i] = buf[l - 1 - i];
     buf[l - 1 - i] = ch;
