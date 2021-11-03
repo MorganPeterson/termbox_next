@@ -64,7 +64,6 @@ static void write_sgr(uint32_t fg, uint32_t bg);
 static void cellbuf_init(struct cellbuf* buf, int width, int height);
 static void cellbuf_resize(struct cellbuf* buf, int width, int height);
 static void cellbuf_clear(struct cellbuf* buf);
-static void cellbuf_free(struct cellbuf* buf);
 static void update_size(void);
 static void update_term_size(void);
 static void send_attr(uint32_t fg, uint32_t bg);
@@ -174,8 +173,8 @@ tb_shutdown(void)
   close(winch_fds[0]);
   close(winch_fds[1]);
 
-  cellbuf_free(&back_buffer);
-  cellbuf_free(&front_buffer);
+  free(back_buffer.cells);
+  free(front_buffer.cells);
   free_ringbuffer(&inbuf);
   termw = termh = -1;
 }
@@ -561,12 +560,6 @@ cellbuf_clear(struct cellbuf* buf)
 }
 
 static void
-cellbuf_free(struct cellbuf* buf)
-{
-  free(buf->cells);
-}
-
-static void
 get_term_size(int* w, int* h)
 {
   struct winsize sz;
@@ -739,7 +732,6 @@ update_size(void)
 static int
 wait_fill_event(struct tb_event* event, struct timeval* timeout)
 {
-  fd_set events;
   memset(event, 0, sizeof(struct tb_event));
 
   /*
@@ -776,6 +768,7 @@ wait_fill_event(struct tb_event* event, struct timeval* timeout)
   /*
    * no content in FILE's internal buffer, block in select
    */
+  fd_set events;
   while (1) {
     FD_ZERO(&events);
     FD_SET(in_fileno, &events);
