@@ -155,11 +155,10 @@ try_compatible(const char* term, const char* name, const char** tkeys,
 static int
 init_term_builtin(void)
 {
-	int i;
 	const char* term = getenv("TERM");
 
 	if (term) {
-		for (i = 0; terms[i].name; i++) {
+		for (int i = 0; terms[i].name; i++) {
 			if (!strcmp(terms[i].name, term)) {
 				keys = terms[i].keys;
 				funcs = terms[i].funcs;
@@ -204,14 +203,14 @@ static char*
 read_file(const char* file)
 {
 	FILE* f = fopen(file, "rb");
-	struct stat st;
 
 	if (!f) {
 		return 0;
 	}
 
-
-	if (fstat(fileno(f), &st) != 0) {
+	struct stat st;
+	
+  if (fstat(fileno(f), &st) != 0) {
 		fclose(f);
 		return 0;
 	}
@@ -254,7 +253,6 @@ terminfo_try_path(const char* path, const char* term)
 static char*
 load_terminfo(void)
 {
-	char tmp[4096];
 	const char* term = getenv("TERM");
 
 	if (!term) {
@@ -270,6 +268,7 @@ load_terminfo(void)
 
 	/* next, consider ~/.terminfo */
 	const char* home = getenv("HOME");
+	char tmp[4096];
 
 	if (home) {
 		snprintf(tmp, sizeof(tmp), "%s/.terminfo", home);
@@ -290,13 +289,11 @@ load_terminfo(void)
 		char* dir = strtok(tmp, ":");
 
 		while (dir) {
-			const char* cdir = dir;
-
-			if (strcmp(cdir, "") == 0) {
-				cdir = "/usr/share/terminfo";
+			if (strcmp(dir, "") == 0) {
+				dir = "/usr/share/terminfo";
 			}
 
-			char* data = terminfo_try_path(cdir, term);
+			char* data = terminfo_try_path(dir, term);
 
 			if (data) {
 				return data;

@@ -73,9 +73,8 @@ parse_mouse_event(struct tb_event* event, const char* buf, int len)
      * xterm: \033 [ < Cb ; Cx ; Cy (M or m)
      * urxvt: \033 [ Cb ; Cx ; Cy M
      */
-		int mi = -1, starti = -1;
-		int isM, isU, s1 = -1, s2 = -1;
-		int n1 = 0, n2 = 0, n3 = 0;
+		int mi = -1;
+		int s1 = -1, s2 = -1;
 
 		for (int i = 0; i < len; i++) {
 			/* We search the first (s1) and the last (s2) ';' */
@@ -98,23 +97,21 @@ parse_mouse_event(struct tb_event* event, const char* buf, int len)
 		}
 
 		/* whether it's a capital M or not */
-		isM = (buf[mi] == 'M');
+		int isM = (buf[mi] == 'M');
+    int isU = 1, starti = 2;
 
 		if (buf[2] == '<') {
 			isU = 0;
 			starti = 3;
-		} else {
-			isU = 1;
-			starti = 2;
 		}
 
 		if (s1 == -1 || s2 == -1 || s1 == s2) {
 			return 0;
 		}
 
-		n1 = strtoul(&buf[starti], NULL, 10);
-		n2 = strtoul(&buf[s1 + 1], NULL, 10);
-		n3 = strtoul(&buf[s2 + 1], NULL, 10);
+		int n1 = strtoul(&buf[starti], NULL, 10);
+		int n2 = strtoul(&buf[s1 + 1], NULL, 10);
+		int n3 = strtoul(&buf[s2 + 1], NULL, 10);
 
 		if (isU) {
 			n1 -= 32;
