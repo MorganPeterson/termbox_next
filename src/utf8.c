@@ -41,12 +41,11 @@ utf8_char_to_unicode(uint32_t* out, const char* c) {
 		return TB_EOF;
 	}
 
-	int i;
 	unsigned char len = utf8_char_length(*c);
 	unsigned char mask = utf8_mask[len - 1];
 	uint32_t result = c[0] & mask;
 
-	for (i = 1; i < len; ++i) {
+	for (int i = 1; i < len; ++i) {
 		result <<= 6;
 		result |= c[i] & 0x3f;
 	}
@@ -58,9 +57,8 @@ utf8_char_to_unicode(uint32_t* out, const char* c) {
 int
 utf8_unicode_to_char(char* out, uint32_t c)
 {
-	int len = 0;
-	int first;
-	int i;
+	int len = 6;
+	int first = 0xfc;
 
 	if (c < 0x80) {
 		first = 0;
@@ -77,12 +75,9 @@ utf8_unicode_to_char(char* out, uint32_t c)
 	} else if (c < 0x4000000) {
 		first = 0xf8;
 		len = 5;
-	} else {
-		first = 0xfc;
-		len = 6;
 	}
 
-	for (i = len - 1; i > 0; --i) {
+	for (int i = len - 1; i > 0; --i) {
 		out[i] = (c & 0x3f) | 0x80;
 		c >>= 6;
 	}

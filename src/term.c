@@ -246,7 +246,7 @@ terminfo_try_path(const char* path, const char* term)
 	}
 
 	// fallback to darwin specific dirs structure
-	snprintf(tmp, sizeof(tmp), "%s/%x/%s", path, term[0], term);
+	snprintf(tmp, sizeof(tmp), "%s/%d/%s", path, term[0], term);
 	tmp[sizeof(tmp) - 1] = '\0';
 	return read_file(tmp);
 }
@@ -323,7 +323,6 @@ terminfo_copy_string(char* data, int str, int table)
 int
 init_term(void)
 {
-	int i;
 	char* data = load_terminfo();
 
 	if (!data) {
@@ -346,18 +345,18 @@ init_term(void)
 
 	keys = malloc(sizeof(const char*) * (TB_KEYS_NUM + 1));
 
-	for (i = 0; i < TB_KEYS_NUM; i++) {
+	for (int i = 0; i < TB_KEYS_NUM; i++) {
 		keys[i] = terminfo_copy_string(data,
 				str_offset + 2 * ti_keys[i], table_offset);
 	}
 
-	keys[i] = NULL;
+	keys[TB_KEYS_NUM] = NULL;
 
 	funcs = malloc(sizeof(const char*) * T_FUNCS_NUM);
 
 	// the last two entries are reserved for mouse. because the table offset is
 	// not there, the two entries have to fill in manually
-	for (i = 0; i < T_FUNCS_NUM - 2; i++) {
+	for (int i = 0; i < T_FUNCS_NUM - 2; i++) {
 		funcs[i] = terminfo_copy_string(data,
 				str_offset + 2 * ti_funcs[i], table_offset);
 	}
@@ -373,9 +372,7 @@ void
 shutdown_term(void)
 {
 	if (init_from_terminfo) {
-		int i;
-
-		for (i = 0; i < TB_KEYS_NUM; i++) {
+		for (int i = 0; i < TB_KEYS_NUM; i++) {
 			free((void*)keys[i]);
 		}
 
@@ -384,7 +381,7 @@ shutdown_term(void)
 		 * is not there, the two entries have to fill in manually and do not
 		 * need to be freed.
      */
-		for (i = 0; i < T_FUNCS_NUM - 2; i++) {
+		for (int i = 0; i < T_FUNCS_NUM - 2; i++) {
 			free((void*)funcs[i]);
 		}
 

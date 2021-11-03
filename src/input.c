@@ -73,11 +73,11 @@ parse_mouse_event(struct tb_event* event, const char* buf, int len)
      * xterm: \033 [ < Cb ; Cx ; Cy (M or m)
      * urxvt: \033 [ Cb ; Cx ; Cy M
      */
-		int i, mi = -1, starti = -1;
+		int mi = -1, starti = -1;
 		int isM, isU, s1 = -1, s2 = -1;
 		int n1 = 0, n2 = 0, n3 = 0;
 
-		for (i = 0; i < len; i++) {
+		for (int i = 0; i < len; i++) {
 			/* We search the first (s1) and the last (s2) ';' */
 			if (buf[i] == ';') {
 				if (s1 == -1) {
@@ -180,9 +180,7 @@ parse_escape_seq(struct tb_event* event, const char* buf, int len)
    * it's pretty simple here, find 'starts_with' match and return success,
    * else return failure
    */
-	int i;
-
-	for (i = 0; keys[i]; i++) {
+	for (int i = 0; keys[i]; i++) {
 		if (starts_with(buf, keys[i])) {
 			event->ch = 0;
 			event->key = 0xFFFF - i;
@@ -195,7 +193,6 @@ parse_escape_seq(struct tb_event* event, const char* buf, int len)
 int
 extract_event(struct tb_event* event, struct ringbuffer* inbuf, int inputmode)
 {
-	char buf[BUFFER_SIZE_MAX + 1];
 	int nbytes = ringbuffer_data_size(inbuf);
 
 	if (nbytes > BUFFER_SIZE_MAX) {
@@ -206,7 +203,9 @@ extract_event(struct tb_event* event, struct ringbuffer* inbuf, int inputmode)
 		return 0;
 	}
 
-	ringbuffer_read(inbuf, buf, nbytes);
+	char buf[BUFFER_SIZE_MAX + 1];
+	
+  ringbuffer_read(inbuf, buf, nbytes);
 	buf[nbytes] = '\0';
 
 	if (buf[0] == '\033') {

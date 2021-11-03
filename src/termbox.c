@@ -183,7 +183,6 @@ tb_shutdown(void)
 void
 tb_present(void)
 {
-  int x, y, w, i;
   struct tb_cell* back, *front;
 
   /* invalidate cursor position */
@@ -195,11 +194,11 @@ tb_present(void)
     buffer_size_change_request = 0;
   }
 
-  for (y = 0; y < front_buffer.height; ++y) {
-    for (x = 0; x < front_buffer.width;) {
+  for (int y = 0; y < front_buffer.height; ++y) {
+    for (int x = 0; x < front_buffer.width;) {
       back = &CELL(&back_buffer, x, y);
       front = &CELL(&front_buffer, x, y);
-      w = wcwidth(back->ch);
+      int w = wcwidth(back->ch);
 
       if (w < 1) {
         w = 1;
@@ -215,13 +214,13 @@ tb_present(void)
 
       if (w > 1 && x >= front_buffer.width - (w - 1)) {
         /* Not enough room for wide ch, so send spaces */
-        for (i = x; i < front_buffer.width; ++i) {
+        for (int i = x; i < front_buffer.width; ++i) {
           send_char(i, y, ' ');
         }
       } else {
         send_char(x, y, back->ch);
 
-        for (i = 1; i < w; ++i) {
+        for (int i = 1; i < w; ++i) {
           front = &CELL(&front_buffer, x + i, y);
           front->ch = 0;
           front->fg = back->fg;
@@ -312,12 +311,11 @@ tb_blit(int x, int y, int w, int h, const struct tb_cell* cells)
     hh = back_buffer.height - y;
   }
 
-  int sy;
   struct tb_cell* dst = &CELL(&back_buffer, x, y);
   const struct tb_cell* src = cells + yo * w + xo;
   size_t size = sizeof(struct tb_cell) * ww;
 
-  for (sy = 0; sy < hh; ++sy) {
+  for (int sy = 0; sy < hh; ++sy) {
     memcpy(dst, src, size);
     dst += back_buffer.width;
     src += w;
@@ -418,16 +416,15 @@ tb_set_clear_attributes(uint32_t fg, uint32_t bg)
 static unsigned
 convertnum(uint32_t num, char* buf)
 {
-  unsigned i, l = 0;
-  int ch;
+  unsigned l = 0;
 
   do {
     buf[l++] = '0' + (num % 10);
     num /= 10;
   } while (num);
 
-  for (i = 0; i < l / 2; i++) {
-    ch = buf[i];
+  for (int i = 0; i < l / 2; i++) {
+    int ch = buf[i];
     buf[i] = buf[l - 1 - i];
     buf[l - 1 - i] = ch;
   }
@@ -538,9 +535,8 @@ cellbuf_resize(struct cellbuf* buf, int width, int height)
 
   int minw = (width < oldw) ? width : oldw;
   int minh = (height < oldh) ? height : oldh;
-  int i;
 
-  for (i = 0; i < minh; ++i) {
+  for (int i = 0; i < minh; ++i) {
     struct tb_cell* csrc = oldcells + (i * oldw);
     struct tb_cell* cdst = buf->cells + (i * width);
     memcpy(cdst, csrc, sizeof(struct tb_cell) * minw);
@@ -552,10 +548,9 @@ cellbuf_resize(struct cellbuf* buf, int width, int height)
 static void
 cellbuf_clear(struct cellbuf* buf)
 {
-  int i;
   int ncells = buf->width * buf->height;
 
-  for (i = 0; i < ncells; ++i) {
+  for (int i = 0; i < ncells; ++i) {
     buf->cells[i].ch = ' ';
     buf->cells[i].fg = foreground;
     buf->cells[i].bg = background;
@@ -741,8 +736,6 @@ update_size(void)
 static int
 wait_fill_event(struct tb_event* event, struct timeval* timeout)
 {
-  int result;
-  char buf[ENOUGH_DATA_FOR_INPUT_PARSING];
   fd_set events;
   memset(event, 0, sizeof(struct tb_event));
 
@@ -758,6 +751,7 @@ wait_fill_event(struct tb_event* event, struct timeval* timeout)
   /*
    * it looks like input buffer is incomplete, let's try the short path
    */
+  char buf[ENOUGH_DATA_FOR_INPUT_PARSING];
   size_t r = fread(buf, 1, ENOUGH_DATA_FOR_INPUT_PARSING, in);
 
   if (r < ENOUGH_DATA_FOR_INPUT_PARSING && feof(in)) {
@@ -784,9 +778,8 @@ wait_fill_event(struct tb_event* event, struct timeval* timeout)
     FD_SET(in_fileno, &events);
     FD_SET(winch_fds[0], &events);
     int maxfd = (winch_fds[0] > in_fileno) ? winch_fds[0] : in_fileno;
-    result = select(maxfd + 1, &events, 0, 0, timeout);
-
-    if (!result) {
+    
+    if (select(maxfd + 1, &events, 0, 0, timeout)) {
       return 0;
     }
 
@@ -822,8 +815,7 @@ wait_fill_event(struct tb_event* event, struct timeval* timeout)
     if (FD_ISSET(winch_fds[0], &events)) {
       event->type = TB_EVENT_RESIZE;
 
-      int zzz = 0;
-      ssize_t byts = read(winch_fds[0], &zzz, sizeof(int));
+      ssize_t byts = read(winch_fds[0], 0, sizeof(int));
       (void) byts;
 
       buffer_size_change_request = 1;
