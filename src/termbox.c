@@ -421,7 +421,7 @@ convertnum(uint32_t num, char* buf)
 
   do {
     buf[l++] = '0' + (num % 10);
-    num /= 10;
+    num = num >> 1;
   } while (num);
 
   for (int i = 0; i < l / 2; i++) {
