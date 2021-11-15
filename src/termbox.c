@@ -712,11 +712,9 @@ send_clear(void)
 static void
 sigwinch_handler(int xxx)
 {
-  (void) xxx;
   const int zzz = 1;
   
-  ssize_t byts = write(winch_fds[1], &zzz, sizeof(int));
-  (void) byts;
+  write(winch_fds[1], &zzz, sizeof(int));
 }
 
 static void
@@ -811,8 +809,7 @@ wait_fill_event(struct tb_event* event, struct timeval* timeout)
     if (FD_ISSET(winch_fds[0], &events)) {
       event->type = TB_EVENT_RESIZE;
 
-      ssize_t byts = read(winch_fds[0], 0, sizeof(int));
-      (void) byts;
+      read(winch_fds[0], 0, sizeof(int));
 
       buffer_size_change_request = 1;
       get_term_size(&event->w, &event->h);
