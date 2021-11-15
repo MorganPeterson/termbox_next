@@ -809,7 +809,8 @@ wait_fill_event(struct tb_event* event, struct timeval* timeout)
     if (FD_ISSET(winch_fds[0], &events)) {
       event->type = TB_EVENT_RESIZE;
 
-      read(winch_fds[0], 0, sizeof(int));
+      int zzz = 0;
+      read(winch_fds[0], &zzz, sizeof(int));
 
       buffer_size_change_request = 1;
       get_term_size(&event->w, &event->h);
