@@ -7,6 +7,9 @@ ifeq ($(OS),Linux)
 	FLAGS+=-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
 endif
 
+INCLUDED=/usr/include
+LIBD=/usr/lib
+
 BIND=bin
 SRCD=src
 OBJD=obj
@@ -38,3 +41,8 @@ clean:
 	@echo "cleaning workspace"
 	@rm -rf $(BIND)
 	@rm -rf $(OBJD)
+
+install:
+	@echo "installing library and header"
+	@cp $(SRCD)/$(NAME).h $(INCLUDED)/$(NAME).h
+	@cp $(BIND)/$(NAME).a $(LIBD)/lib$(NAME).a
