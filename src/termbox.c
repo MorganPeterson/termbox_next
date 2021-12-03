@@ -592,7 +592,7 @@ static void
 send_attr(uint32_t fg, uint32_t bg)
 {
   static uint32_t lastfg = LAST_ATTR_INIT, lastbg = LAST_ATTR_INIT;
-  
+
   if (fg != lastfg || bg != lastbg) {
     memstream_puts(&write_buffer, funcs[T_SGR0]);
     uint32_t fgcol;
@@ -714,7 +714,7 @@ sigwinch_handler(int xxx)
 {
   (void) xxx;
   const int zzz = 1;
-  
+
   ssize_t byts = write(winch_fds[1], (void *)&zzz, sizeof(int));
   (void) byts;
 }
@@ -732,92 +732,96 @@ update_size(void)
 static int
 wait_fill_event(struct tb_event* event, struct timeval* timeout)
 {
-  memset(event, 0, sizeof(struct tb_event));
+#define ENOUGH_DATA_FOR_INPUT_PARSING 128
+	int result;
+	char buf[ENOUGH_DATA_FOR_INPUT_PARSING];
+	fd_set events;
+	memset(event, 0, sizeof(struct tb_event));
 
-  /*
-   * try to extract event from input buffer, return on success
-   */
-  event->type = TB_EVENT_KEY;
+	// try to extract event from input buffer, return on success
+	event->type = TB_EVENT_KEY;
 
-  if (extract_event(event, &inbuf, inputmode)) {
-    return event->type;
-  }
+	if (extract_event(event, &inbuf, inputmode))
+	{
+		return event->type;
+	}
 
-  /*
-   * it looks like input buffer is incomplete, let's try the short path
-   */
-  char buf[ENOUGH_DATA_FOR_INPUT_PARSING];
-  size_t r = fread(buf, 1, ENOUGH_DATA_FOR_INPUT_PARSING, in);
+	// it looks like input buffer is incomplete, let's try the short path
+	size_t r = fread(buf, 1, ENOUGH_DATA_FOR_INPUT_PARSING, in);
 
-  if (r < ENOUGH_DATA_FOR_INPUT_PARSING && feof(in)) {
-    clearerr(in);
-  }
+	if (r < ENOUGH_DATA_FOR_INPUT_PARSING && feof(in))
+	{
+		clearerr(in);
+	}
 
-  if (r > 0) {
-    if (ringbuffer_free_space(&inbuf) < r) {
-      return -1;
-    }
+	if (r > 0)
+	{
+		if (ringbuffer_free_space(&inbuf) < r)
+		{
+			return -1;
+		}
 
-    ringbuffer_push(&inbuf, buf, r);
+		ringbuffer_push(&inbuf, buf, r);
 
-    if (extract_event(event, &inbuf, inputmode)) {
-      return event->type;
-    }
-  }
+		if (extract_event(event, &inbuf, inputmode))
+		{
+			return event->type;
+		}
+	}
 
-  /*
-   * no content in FILE's internal buffer, block in select
-   */
-  fd_set events;
-  while (1) {
-    FD_ZERO(&events);
-    FD_SET(in_fileno, &events);
-    FD_SET(winch_fds[0], &events);
-    int maxfd = (winch_fds[0] > in_fileno) ? winch_fds[0] : in_fileno;
-    
-    if (select(maxfd + 1, &events, 0, 0, timeout)) {
-      return 0;
-    }
+	// no stuff in FILE's internal buffer, block in select
+	while (1)
+	{
+		FD_ZERO(&events);
+		FD_SET(in_fileno, &events);
+		FD_SET(winch_fds[0], &events);
+		int maxfd = (winch_fds[0] > in_fileno) ? winch_fds[0] : in_fileno;
+		result = select(maxfd + 1, &events, 0, 0, timeout);
 
-    if (FD_ISSET(in_fileno, &events)) {
-      event->type = TB_EVENT_KEY;
-      size_t r = fread(buf, 1, ENOUGH_DATA_FOR_INPUT_PARSING, in);
+		if (!result)
+		{
+			return 0;
+		}
 
-      if (r < ENOUGH_DATA_FOR_INPUT_PARSING && feof(in)) {
-        clearerr(in);
-      }
+		if (FD_ISSET(in_fileno, &events))
+		{
+			event->type = TB_EVENT_KEY;
+			size_t r = fread(buf, 1, ENOUGH_DATA_FOR_INPUT_PARSING, in);
 
-      if (r == 0) {
-        continue;
-      }
+			if (r < ENOUGH_DATA_FOR_INPUT_PARSING && feof(in))
+			{
+				clearerr(in);
+			}
 
-      /*
-       * if there is no free space in input buffer, return error
-       */
-      if (ringbuffer_free_space(&inbuf) < r) {
-        return -1;
-      }
+			if (r == 0)
+			{
+				continue;
+			}
 
-      /*
-       * fill buffer
-       */
-      ringbuffer_push(&inbuf, buf, r);
+			// if there is no free space in input buffer, return error
+			if (ringbuffer_free_space(&inbuf) < r)
+			{
+				return -1;
+			}
 
-      if (extract_event(event, &inbuf, inputmode)) {
-        return event->type;
-      }
-    }
+			// fill buffer
+			ringbuffer_push(&inbuf, buf, r);
 
-    if (FD_ISSET(winch_fds[0], &events)) {
-      event->type = TB_EVENT_RESIZE;
+			if (extract_event(event, &inbuf, inputmode))
+			{
+				return event->type;
+			}
+		}
 
-      const int zzz = 0;
-      ssize_t byts = read(winch_fds[0], (void *)&zzz, sizeof(int));
-      (void) byts;
-
-      buffer_size_change_request = 1;
-      get_term_size(&event->w, &event->h);
-      return TB_EVENT_RESIZE;
-    }
-  }
+		if (FD_ISSET(winch_fds[0], &events))
+		{
+			event->type = TB_EVENT_RESIZE;
+			int zzz = 0;
+			read(winch_fds[0], &zzz, sizeof(int));
+			buffer_size_change_request = 1;
+			get_term_size(&event->w, &event->h);
+			return TB_EVENT_RESIZE;
+		}
+	}
 }
+
