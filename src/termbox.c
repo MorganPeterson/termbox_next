@@ -25,6 +25,11 @@
 #define LAST_ATTR_INIT 0xFFFFFFFF
 #define ENOUGH_DATA_FOR_INPUT_PARSING 128
 
+#ifndef SIGWINCH
+#define SIGWINCH 28  /* window size changes */
+#define SIGINFO 29 /* information request */
+#endif
+
 struct cellbuf
 {
   int width;
