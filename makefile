@@ -7,6 +7,10 @@ ifeq ($(OS),Linux)
 	FLAGS+=-D_POSIX_C_SOURCE=200809L -D_XOPEN_SOURCE=700
 endif
 
+ifeq ($(OS),Darwin)
+    FLAGS += -g -D_DARWIN_C_SOURCE
+endif
+
 INCLUDED=/usr/include
 LIBD=/usr/lib
 
