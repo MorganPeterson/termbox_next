@@ -1,3 +1,7 @@
+# NOTICE
+
+__I am moving this repository to [Sourcehut](https://git.sr.ht/~nullevoid/termbox_next) and this one will be archived. Any future development (if any) will be done in the new repository.__
+
 # Termbox
 [Termbox](https://github.com/nsf/termbox)
 was a promising Text User Interface (TUI) library.
